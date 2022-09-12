@@ -1,0 +1,24 @@
+string list $listdata ={}
+
+file open "C:\Users\evansdw\OneDrive - Fisher & Paykel Healthcare\Documents\01 NIV EOH Project\07 boot design cam\!cam\macrotest\info.txt" for read as infile
+
+file read $listdata from infile
+
+file close infile
+
+string $tmp1 = ""
+string $tmp2 = ""
+string $boundary_id = ""
+string $tmp4 = ""
+string list $tmp1_list = {}
+string list $boundary_components = {}
+
+
+foreach data in listdata {
+	$tmp1 = data
+	$tmp2 = replace( tmp1, ";", " ")
+	$tmp1_list = tokens( tmp2)
+	$boundary_id = tmp1_list[0]
+	$tmp4 = replace( tmp1_list[1], ",", " ")
+	$boundary_components = tokens( tmp4)
+}

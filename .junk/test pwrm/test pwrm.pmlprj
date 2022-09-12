@@ -1,0 +1,23 @@
+20 4 2020000 2020008 64 # Entity Index (DO NOT EDIT!)
+0 0
+02 Aug 2022 16.06.35
+x2e5ac60062e894600000318400000000.pmlent pmlEntModel '622181_ntli_01_body_prt'
+x2e67b9f062e8946c00003e6300000000.pmlent pmlEntLevel '0'
+x4c9a055062e8946c00007dfe00000000.pmlent pmlEntModel '622181_ntli_02_bnd_prt'
+x4ccd17f062e894770000a29b00000000.pmlent pmlEntModel '622181_ntli_03_bnd_prt'
+x4ccd167062e894810000d04300000000.pmlent pmlEntModel '622181_ntli_04_pat_prt'
+x4d4f42f062e8948b0001374300000000.pmlent pmlEntModel '622181_ntli_05_dtm_prt'
+x4f5dafa062e8955f0002f74200000000.pmlent pmlEntBoundary '02_bnd'
+x4ffce2f062e895aa0005c1cb00000000.pmlent pmlEntTool '2 mm Carbide Ball Mill'
+x4ffcb89062e895b90005eccf00000000.pmlent pmlEntWorkplane '1'
+x54af2f1062e895f80008582000000000.pmlent pmlEntStockModel 'Workplane 1 stock model'
+x5473e21062e89628000939b200000000.pmlent pmlEntToolpath '1'
+x5976e40062e89e6b0020993400000000.pmlent pmlEntPattern '04_pat'
+x5fa2c9c062e89ec50021a31400000000.pmlent pmlEntPattern '1'
+x54eca2d062e89edc0021e49b00000000.pmlent pmlEntTool '45 Degree Chamfer Mill'
+x54ec52f062e89f12002209a900000000.pmlent pmlEntToolpath '2'
+x5f3cadd062e89f4c0026159000000000.pmlent pmlEntPattern '2'
+x5533866062e89f7a0027625e00000000.pmlent pmlEntToolpath '3'
+x6063117062e8a11c0030c73000000000.pmlent pmlEntTool '1 mm Carbide Ball Mill'
+x60818f6062e8a13700331a2f00000000.pmlent pmlEntPattern '04_pat_1'
+x61033bb062e8a18a0034000000000000.pmlent pmlEntPattern '04_pat_reroute'

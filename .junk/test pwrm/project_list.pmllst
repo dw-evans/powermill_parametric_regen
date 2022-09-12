@@ -1,0 +1,38 @@
+type list
+version 0
+Toolpath\
+Toolpath\1
+Toolpath\2
+Toolpath\3
+Group\
+Pattern\
+Pattern\04_pat
+Pattern\04_pat_1
+Pattern\1
+Pattern\2
+Pattern\04_pat_reroute
+Workplane\
+Workplane\1
+Setup\
+FeatureGroup\
+Boundary\
+Boundary\02_bnd
+Macro\
+Featureset\
+NCProgram\
+Level\
+Level\0
+Tool\
+Tool\2 mm Carbide Ball Mill
+Tool\45 Degree Chamfer Mill
+Tool\1 mm Carbide Ball Mill
+Process\
+MachineTool\
+StockModel\
+StockModel\Workplane 1 stock model
+Model\
+Model\622181_ntli_01_body_prt
+Model\622181_ntli_02_bnd_prt
+Model\622181_ntli_03_bnd_prt
+Model\622181_ntli_04_pat_prt
+Model\622181_ntli_05_dtm_prt

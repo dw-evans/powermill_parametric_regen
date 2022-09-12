@@ -1,0 +1,42 @@
+string $id_pat = "pat"
+string $id_bnd = "bnd"
+
+//string list $tmp_list = {}
+
+string $model_name = ""
+string list $model_name_aslist = {}
+
+string $boundary_name = ""
+
+string $boundary_type = ""
+
+foreach m in folder ('Model') {
+	$model_name = m.Name
+	$model_name_aslist = tokens ( replace( model_name, "_", " "))
+	
+    // size(model_name_aslist)
+
+	$boundary_type = model_name_aslist[size(model_name_aslist)-2]
+
+	$boundary_name = model_name_aslist[size(model_name_aslist)-3] + "_" + model_name_aslist[size(model_name_aslist)-2]
+	
+	if ($boundary_type == $id_bnd) {
+		edit model $model_name select SURFACE
+		CREATE BOUNDARY $boundary_name contactpoint
+		EDIT BOUNDARY ; TOLERANCE "0.005"
+		EDIT BOUNDARY ; INSERT MODEL
+		EDIT BOUNDARY ; ACCEPT BOUNDARY ACCEPT
+		edit model $model_name deselect all
+		draw boundary $boundary_name
+
+	} elseif (boundary_type == id_pat) {
+		edit model $model_name select wireframe
+		create pattern $boundary_name
+		edit pattern ; insert model
+		edit model $model_name deselect all
+		draw pattern $boundary_name
+	}
+	deactivate boundary
+	deactivate pattern
+
+}

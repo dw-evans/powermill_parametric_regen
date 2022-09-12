@@ -1,0 +1,250 @@
+
+// autoregen_01.mac
+// Parametric re-import of boundaries and patterns
+// Can overwrite boundaries and will create copies of patterns for rerouting
+
+// Daniel Evans
+// 08 Sep 2022
+
+// Implementation
+// Currently relies on:
+// surfaces for boundary creation
+// wireframe/curves for pattern generation (could change to select all potentially...)
+
+
+// main function
+// note that if functions are used at all, a main() function is mandatory
+// seems like main() is automatically called
+function main () {
+
+	// turn off error and warning dialogs which stop execution
+	DIALOGS MESSAGE OFF
+	DIALOGS ERROR OFF
+
+	string $filename = ""
+	$filename = "L:\Daniel E\Documents\23 niv tube\07 boot design\!exports\622181_ntli_.txt"
+	$filename = fileselect "Select Text File" "*.txt"
+	
+	string list model_import_list = {}
+	call Load_model_import_list(filename, $model_import_list)
+
+	call Load_models(model_import_list)
+
+	call Write_boundaries_patterns() 
+
+	// resume normal dialog behaviour
+	DIALOGS MESSAGE ON
+	DIALOGS ERROR ON
+
+
+}
+
+
+// obselete function - replace with member(list string, string) inbuilt
+function Check_string_in_liststring(string str string, list str_list, output bool in_list) {
+	$in_list = member(str_list, str)
+	foreach item in str_list {
+		if (str == item) {
+			$in_list = True
+			break
+		}
+	}
+}
+
+
+// function which writes boundaries and patterns 
+function Write_boundaries_patterns() {
+	string $id_pat = "pat"
+	string $id_bnd = "bnd"
+	string $id_body = "body"
+	string $id_holes = "holes"
+
+	string $model_name = ""
+	string list $model_name_aslist = {}
+	string $curve_name = ""
+	string $curve_type = ""
+
+	
+
+	string list list_boundary_names = {}
+	string list list_pattern_names = {}
+	string list list_featureset_names = {}
+	call Item_names_in_folder("Boundary", $list_boundary_names)
+	call Item_names_in_folder("Pattern", $list_pattern_names)
+	call Item_names_in_folder("Featureset", $list_featureset_names)
+
+	bool in_list = 0
+	bool create_copy = 0
+
+	foreach m in folder ('Model') {
+		// get model name and get tokens based on naming convention
+		// *_*_..._01_bnd_prt, i.e. this will will extract 01 and bnd to gen the curve name from the model name
+		// consider new token replace to find all tags separated by "-" for easier property handling
+		// e.g. wireframe vs surface
+		// probably easiest to split the tags with different delimiter e.g. '-'
+		$model_name = m.Name
+		// split model name into list by delimiter
+		$model_name_aslist = tokens ( replace( model_name, "_", " "))
+
+		// curve type *_01_<bnd>_prt
+		$curve_type = model_name_aslist[size(model_name_aslist)-2]
+		$curve_name = model_name_aslist[size(model_name_aslist)-3] + "_" + model_name_aslist[size(model_name_aslist)-2]
+	
+		// make all but the body file 100% translucent
+		if (curve_type != id_body) {
+			edit model $model_name translucency 100
+		}
+
+		// if curve has boundary tag in its name...
+		if ($curve_type == $id_bnd) {
+			
+			// check if curve_name is a member of existing target folder
+			$in_list = member (list_boundary_names, curve_name)
+
+			// if it is, unlock it and overwrite,
+			// otherwise create a new contactpoint boundary
+			if (in_list == 1) {
+				// activate boundary for operations
+				activate boundary $curve_name
+				// clear current boundary
+				unlock boundary $curve_name
+				edit boundary $curve_name select all
+				delete boundary $curve_name selected
+				// convert surface selection to boundary
+				edit model $model_name select SURFACE
+				edit boundary $curve_name insert model
+
+			} else {
+				// create contact point boundary using same settings as pyp macro
+				edit model $model_name select SURFACE
+				CREATE BOUNDARY $curve_name contactpoint
+				EDIT BOUNDARY ; TOLERANCE "0.005"
+				EDIT BOUNDARY ; INSERT MODEL
+				EDIT BOUNDARY ; ACCEPT BOUNDARY ACCEPT
+			}
+			// draw the modified boundary (drawn boundaries have been modified)
+			draw boundary $curve_name
+
+		// if curve has pattern tag in its name
+		} elseif (curve_type == id_pat) {
+
+			$in_list = member(list_pattern_names, curve_name)
+
+			edit model $model_name select wireframe
+
+			// if in list, rename the curve and create a new one for manual reroute
+			string curve_old_newname = ""
+
+			if (in_list == 1) {
+				$curve_old_newname = curve_name + "_old"
+				rename pattern $curve_name $curve_old_newname
+				// $curve_name = curve_name + "_reroute"
+			}
+			create pattern $curve_name
+			edit pattern ; insert model
+			draw pattern $curve_name
+
+			FORM EMBEDPATTERNS
+			EDIT EMBEDDED DROP ON
+			EDIT EMBEDDED EMBED_TOLERANCE "0.01"
+			EDIT PATTERN ; EMBED EMBEDPATTERNS ACCEPT
+		
+		// if curve has hole tag in its name
+		} elseif (curve_type == id_holes) {
+
+			$in_list = member(list_featureset_names, $curve_name)
+
+			if (in_list == 1) {
+				activate featureset $curve_name
+				form featureselect
+				edit selection apply
+				featureselect cancel
+				delete featureset $curve_name selected
+			} else {
+				// create new hole featurest 
+				create featureset $curve_name
+
+			}
+			activate featureset $curve_name EDIT FEATURECREATE TYPE HOLE EDIT FEATURECREATE CIRCULAR ON EDIT FEATURECREATE FILTER HOLES EDIT FEATURECREATE TOPDEFINE ABSOLUTE EDIT FEATURECREATE BOTTOMDEFINE ABSOLUTE FORM CANCEL FEATURE FORM CREATEHOLE
+			edit model $model_name select surface
+			EDIT FEATURECREATE CREATEHOLES
+			form cancel edithole
+			form cancel createhole
+		}
+
+		
+		// deselect selected (to avoid adding to next curve selection)
+		// and deactivate for cleanliness
+		edit model $model_name deselect all
+		deactivate boundary
+		deactivate pattern
+		deactivate featureset
+
+	}
+}
+
+
+// function to load .txt with rows of complete paths to files to import as models
+function Load_model_import_list (string filename, output string list model_import_list) {
+	// load .txt with files to import with no fancy stuff for 
+	// compatibility with tag checking functionality
+	file open $filename for read as model_import_list_file
+
+	// string list $model_import_list ={}
+	file read $model_import_list from model_import_list_file
+
+	file close model_import_list_file
+}
+
+
+// function to load models from a list of complete file paths to .stp models for example
+function Load_models (string list model_import_list) {
+	
+	// get list of currently active model names
+	string list current_model_name_list = {}
+	call Item_names_in_folder("Model", $current_model_name_list)
+	
+	string list d1 = {}
+	string model_import_pwrmname = ""
+	bool to_overwrite = False
+
+	foreach model_import in model_import_list {
+		
+		// extract Models\<name> <name> from import string
+		$d1 = tokens (replace (model_import, "\", " "))
+		// removes *_prt.stp from end of name - standard output name when multi step export
+		$model_import_pwrmname = replace (d1[size(d1) -1], ".stp", "")
+
+		// check if extracted model <name> already exists, set to_overwrite boolean
+		$to_overwrite = False
+		foreach str in current_model_name_list {
+			// if model name
+			if (model_import_pwrmname == str) {
+				$to_overwrite = True
+				break
+			}
+		}
+
+		// check if model is to be overwritten.
+		if (to_overwrite) {
+			// delete model to be overwritten
+			delete model $model_import_pwrmname
+		}
+
+		// import the model
+		import model $model_import
+		
+	}
+
+}
+
+
+// function which returns the .Name property of items in a folder
+// Common folders incl: Boundary, Pattern, Model, ... Possible others: Tool, Toolpath
+function Item_names_in_folder (string folder_name, output string list item_name_list) {
+	foreach item in folder (folder_name) {
+		// strange syntax I think its necessary
+		int s = add_last (item_name_list, item.Name)
+	}
+}
+

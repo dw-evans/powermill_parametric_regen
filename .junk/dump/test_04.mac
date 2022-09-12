@@ -1,0 +1,5 @@
+
+FUNCTION Main () {
+	print = "hello world"
+}
+

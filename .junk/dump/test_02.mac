@@ -1,0 +1,70 @@
+// Daniel Evans
+// 02 Aug 2022
+
+// Parametric re-import of boundaries
+
+
+function main () {
+
+	// string $filename = ""
+	// $filename = fileselect "Select Text File" "*.txt"
+	$filename = "L:\Daniel E\Documents\23 niv tube\07 boot design\!exports\622181_ntli_.txt"
+	string list model_import_list = {}
+	call Load_model_import_list(filename, $model_import_list)
+
+	call Load_models(model_import_list)
+
+}
+
+function Load_model_import_list (string filename, output string list model_import_list) {
+	// load .txt with files to import
+	file open $filename for read as model_import_list_file
+
+	// string list $model_import_list ={}
+	file read $model_import_list from model_import_list_file
+
+	file close model_import_list_file
+}
+
+function Load_models (string list model_import_list) {
+	
+	// get list of currently active model names
+	string list current_model_name_list = {}
+	call Item_names_in_folder("Model", $current_model_name_list)
+	
+	string list d1 = {}
+	string model_import_pwrmname = ""
+	bool to_overwrite = False
+
+	foreach model_import in model_import_list {
+		
+		// extract Models\<name> <name> from import string
+		$d1 = tokens (replace (model_import, "\", " "))
+		$model_import_pwrmname = replace (d1[size(d1) -1], ".stp", "")
+
+		$to_overwrite = False
+		foreach str in current_model_name_list {
+			// if model name
+			if (model_import_pwrmname == str) {
+				$to_overwrite = True
+				break
+			}
+		}
+
+		if (to_overwrite) {
+			// delete model to be overwritten
+			delete model $model_import_pwrmname
+		}
+
+		import model $model_import
+		
+	}
+
+}
+
+function Item_names_in_folder (string folder_name, output string list item_name_list) {
+	foreach item in folder (folder_name) {
+		int s = add_last (item_name_list, item.Name)
+	}
+}
+
